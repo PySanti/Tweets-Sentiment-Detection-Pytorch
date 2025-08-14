@@ -5,4 +5,5 @@ import pandas as pd
 path = kagglehub.dataset_download("tariqsays/sentiment-dataset-with-1-million-tweets")
 x = pd.DataFrame(pd.read_csv(path + "/dataset.csv"))
 print(x.shape)
+print(x.iloc[0])
 
