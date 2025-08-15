@@ -3,6 +3,7 @@ from nltk.corpus import stopwords
 import re
 from nltk.stem import LancasterStemmer, SnowballStemmer
 
+PROCESSED_DATA_FILENAME = "processed_data.csv"
 language_map = {
     "el": "greek",
     "pt": "portuguese",

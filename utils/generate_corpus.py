@@ -7,7 +7,6 @@ def generate_corpus(X):
     """
     app_dict = {}
     for tw in X:
-        print(tw)
         for w in tw.split(" "):
             if app_dict.get(w):
                 app_dict[w] += 1
