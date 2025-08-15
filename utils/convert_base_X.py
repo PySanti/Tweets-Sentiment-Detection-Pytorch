@@ -14,7 +14,7 @@ def convert_base_X(X):
     """
     new_X = []
     for row in X.itertuples():
-#        print(f"\t{row.Index}/{len(X)}", end="\r")
+        print(f"\t{row.Index}/{len(X)}", end="\r")
         lan_tag = "lan_" + (row.Language if row.Language in language_map.keys() else "other")
         new_row = lan_tag + " " + clean_tweet(row.Text, row.Language)
         new_X.append(new_row)

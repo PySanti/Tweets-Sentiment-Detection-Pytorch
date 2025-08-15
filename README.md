@@ -240,3 +240,27 @@ Con el codigo actual, la longitud del corpus es de ~750.000 palabras, demasiado 
 2- Se precompilaron las expresiones regulares, steemers y stopwords_dicts y se almacenaron en constants.
 
 3- Se limpio el codigo de clean_text.py
+
+## Implementacion de filtrado por frecuencia
+
+Cree la funcion `generate_corpus()` para generar un corpus de aquellas palabras que aparcen mas de N cantidad de veces, con ello, la dimension del corpus se redujo en un 90%.
+
+```python
+
+from .constants import MIN_APP_FREC
+import numpy as np
+import pandas as pd
+def generate_corpus(X):
+    """
+        Recibe la lista de tweets limpios y retorna el corpus.
+    """
+    app_dict = {}
+    for tw in X:
+        print(tw)
+        for w in tw.split(" "):
+            if app_dict.get(w):
+                app_dict[w] += 1
+            else:
+                app_dict[w] = 1
+    return np.array([w for w in app_dict.keys() if app_dict[w] >= MIN_APP_FREC])
+```
