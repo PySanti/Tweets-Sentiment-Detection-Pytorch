@@ -264,3 +264,72 @@ def generate_corpus(X):
                 app_dict[w] = 1
     return np.array([w for w in app_dict.keys() if app_dict[w] >= MIN_APP_FREC])
 ```
+
+## Implementacion de persistencia de tweets procesados
+
+Luego de multiples pruebas con la funcion `convert_base_X`, empezamos a implementar persistencia de tweets procesador para perder menos tiempo.
+
+Por otro lado, se implemento la division del conjunto de datos previo a al vectorizacion a traves de `CountVectorizer`.
+
+```python
+
+# main.py
+
+from sklearn.model_selection import train_test_split
+from utils.convert_base_X import convert_base_X
+from utils.load_base_data import load_base_data
+import os
+from utils.constants import *
+import pandas as pd
+
+from utils.show_dataset_info import show_dataset_info
+
+
+base_dataset = None
+if os.path.exists(f"./{PROCESSED_DATA_FILENAME}"):
+    base_dataset = pd.read_csv(f"./{PROCESSED_DATA_FILENAME}")
+else:
+    base_dataset = load_base_data()
+    X = base_dataset.drop(labels=['Label'], axis=1)
+    Y = base_dataset['Label'].to_numpy()
+    X = convert_base_X(X)
+    base_dataset = pd.DataFrame({"tweets" : pd.Series(X), "target":pd.Series(Y) })
+    base_dataset.to_csv(f"./{PROCESSED_DATA_FILENAME}",index=False)
+
+X = base_dataset["tweets"]
+Y = base_dataset['target']
+
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, random_state=42, test_size=0.1, stratify=Y)
+X_train, X_test, Y_train, Y_test = train_test_split(X_train, Y_train, random_state=42, test_size=0.1, stratify=Y_train)
+
+show_dataset_info(X_train, Y_train, "Train")
+show_dataset_info(X_val, Y_val, "Val")
+show_dataset_info(X_test, Y_test, "Test")
+```
+
+```
+~~~~~~~~ Dataset : Train
+Shape del X : (759661,)
+Shape del Y : (759661,)
+Distribucion de target
+positive   :   28.21
+negative   :   27.96
+uncertainty   :   22.07
+litigious   :   21.77
+~~~~~~~~ Dataset : Val
+Shape del X : (93786,)
+Shape del Y : (93786,)
+Distribucion de target
+positive   :   28.21
+negative   :   27.96
+uncertainty   :   22.07
+litigious   :   21.77
+~~~~~~~~ Dataset : Test
+Shape del X : (84407,)
+Shape del Y : (84407,)
+Distribucion de target
+positive   :   28.21
+negative   :   27.96
+uncertainty   :   22.07
+litigious   :   21.77
+```
