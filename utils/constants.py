@@ -69,6 +69,7 @@ language_map = {
     "gu": "gujarati"
 }
 
+MIN_APP_FREC = 5
 steemer_dict = {
         "en": LancasterStemmer(),
         **{lan : SnowballStemmer(language_map[lan]) for lan in language_map.keys() if lan!="en" and language_map[lan] in SnowballStemmer.languages}

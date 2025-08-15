@@ -3,12 +3,10 @@ import string
 from .constants import *
 
 
-def clean_text(text, lan) -> str:
+def clean_tweet(text, lan) -> str:
     """
-        Elimina emojis, @s y urls del texto.
+        Elimina emojis, @s y urls de lost tweets.
     """
-
-    # precompilar los patrones y los steemers
     text = text.strip()
     text = text.replace('\n', ' ').replace('\t', ' ')
     text = text.translate(str.maketrans('', '', string.punctuation))

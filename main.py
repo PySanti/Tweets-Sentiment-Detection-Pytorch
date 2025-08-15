@@ -1,5 +1,6 @@
 from utils.convert_base_X import convert_base_X
 from utils.load_base_data import load_base_data
+from utils.generate_corpus import generate_corpus
 
 
 
@@ -12,7 +13,7 @@ print("Convirtiendo X base")
 X = convert_base_X(X)
 
 print("Generando corpus")
-corpus = set([w.strip().lower() for w in " ".join(X).split(" ")])
+corpus = generate_corpus(X)
 
 print(corpus)
 print(len(corpus))
