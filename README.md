@@ -333,3 +333,92 @@ negative   :   27.96
 uncertainty   :   22.07
 litigious   :   21.77
 ```
+
+## Implementacion de vectorizacion con CountVectorizer
+
+1- Se implemento CountVectorizer para vectorizacion: con ello nos ahorramos el problema de la generacion del corpus y del enorme espacio que conllevaba generar los embeddings manualmente. Es destacable mencionar que CountVectorizer funciona infinitamente mejor por que implementa el concepto de Sparse Matrix, una estructura de datos que se utiliza para almacenar informacion asociada a una matriz con muchos 0s. La matriz de dispersion solo almacena informacion de las coordenadas donde se almacenan los valores distintos de 0.
+
+Ejm:
+
+Matriz densa : [1,0,0,3,0,1]
+Matriz dispersa : (0,1), (4,3), (6,1)
+
+Las matrices dispersas ocupan infinitamente menos espacio.
+
+2- Luego, para crear los dataloaders se tuvieron que convertir las matrices de dispersion a tensores de pytorch, para ello creamos la funcion `convert_sparse_to_torch`.
+
+3- Luego se utilizo one hot encoding para convertir los tags.
+
+```python
+import torch
+from utils.convert_to_sparse_tensor import convert_to_sparse_tensor
+from torch.utils.data import TensorDataset
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from utils.convert_base_X import convert_base_X
+from utils.load_base_data import load_base_data
+import os
+from utils.constants import *
+import pandas as pd
+from torch.utils.data import DataLoader
+import torch
+from sklearn.feature_extraction.text import CountVectorizer
+
+base_dataset = None
+
+if os.path.exists(f"./{PROCESSED_DATA_FILENAME}"):
+    base_dataset = pd.read_csv(f"./{PROCESSED_DATA_FILENAME}")
+else:
+    base_dataset = load_base_data()
+    X = base_dataset.drop(labels=['Label'], axis=1)
+    Y = base_dataset['Label'].to_numpy()
+    X = convert_base_X(X)
+    base_dataset = pd.DataFrame({"tweets" : pd.Series(X), "target":pd.Series(Y) })
+    base_dataset.to_csv(f"./{PROCESSED_DATA_FILENAME}",index=False)
+
+X = base_dataset["tweets"]
+Y = base_dataset['target'].map(TAGS_MAP)
+
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, random_state=42, test_size=0.1, stratify=Y)
+X_train, X_test, Y_train, Y_test = train_test_split(X_train, Y_train, random_state=42, test_size=0.1, stratify=Y_train)
+
+# Solo se admitiran palabras en el corpus que aparezcan +5 veces
+vectorizer = CountVectorizer(min_df=5)
+
+X_train = convert_to_sparse_tensor(vectorizer.fit_transform(X_train))
+X_val = convert_to_sparse_tensor(vectorizer.transform(X_val))
+X_test = convert_to_sparse_tensor(vectorizer.transform(X_test))
+
+Y_train = torch.tensor(Y_train.to_numpy()).unsqueeze(1)
+Y_val = torch.tensor(Y_val.to_numpy()).unsqueeze(1)
+Y_test = torch.tensor(Y_test.to_numpy()).unsqueeze(1)
+
+print(X_train.shape)
+print(Y_train.shape)
+print(X_val.shape)
+print(Y_val.shape)
+print(X_test.shape)
+print(Y_test.shape)
+
+
+train_dataloader = DataLoader(TensorDataset(X_train, Y_train), batch_size=BATCH_SIZE, shuffle=False)
+validation_dataloader = DataLoader(TensorDataset(X_val, Y_val), batch_size=BATCH_SIZE, shuffle=False)
+test_dataloader = DataLoader(TensorDataset(X_test, Y_test), batch_size=BATCH_SIZE, shuffle=False)
+
+```
+
+
+```
+
+# train set
+torch.Size([759661, 63517])
+torch.Size([759661, 1])
+
+# val set
+torch.Size([93786, 63517])
+torch.Size([93786, 1])
+
+# test set
+torch.Size([84407, 63517])
+torch.Size([84407, 1])
+```
