@@ -3,6 +3,14 @@ from nltk.corpus import stopwords
 import re
 from nltk.stem import LancasterStemmer, SnowballStemmer
 
+
+BATCH_SIZE = 64
+TAGS_MAP = {
+        'positive':0,
+        'negative':1,
+        'uncertainty':2,
+        'litigious':3
+    }
 PROCESSED_DATA_FILENAME = "processed_data.csv"
 language_map = {
     "el": "greek",
