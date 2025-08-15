@@ -231,3 +231,12 @@ def clean_text(text, lan) -> str:
 ```
 
 Con el codigo actual, la longitud del corpus es de ~750.000 palabras, demasiado grande. Buscaremos reducirlo aun mas y optimizar el codigo.
+
+
+## Mejora del codigo
+
+1- Se creo el modulo constants.py para almacenar alli las constantes del proyecto.
+
+2- Se precompilaron las expresiones regulares, steemers y stopwords_dicts y se almacenaron en constants.
+
+3- Se limpio el codigo de clean_text.py
