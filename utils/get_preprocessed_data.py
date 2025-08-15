@@ -43,9 +43,10 @@ def get_preprocessed_data():
 
 
     # Conversion a tensores de targets
-    Y_train = torch.tensor(Y_train.to_numpy()).unsqueeze(1)
-    Y_val = torch.tensor(Y_val.to_numpy()).unsqueeze(1)
-    Y_test = torch.tensor(Y_test.to_numpy()).unsqueeze(1)
+    Y_train = torch.LongTensor(Y_train.to_numpy())
+    Y_val = torch.LongTensor(Y_val.to_numpy())
+    Y_test = torch.LongTensor(Y_test.to_numpy())
+
 
     return (X_train, Y_train), (X_val, Y_val), (X_test, Y_test)
 

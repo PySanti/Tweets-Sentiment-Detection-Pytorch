@@ -9,7 +9,7 @@ def sparse_collate_fn(batch):
 
 
 
-def generate_dataloaders(train_dataset, val_dataset, test_dataset, BATCH_SIZE):
+def generate_dataloaders(BATCH_SIZE,train_dataset=None, val_dataset=None, test_dataset=None):
     train_dataloader, validation_dataloader, test_dataloader = None, None, None
     if train_dataset:
         train_dataloader = DataLoader(
