@@ -37,13 +37,13 @@ def get_preprocessed_data():
     vectorizer = CountVectorizer(min_df=5)
 
     # Uso de convert_to_sparse_tensor para convertir a matrices de dispersion de PyTorch
-    X_train = convert_to_sparse_tensor(vectorizer.fit_transform(X_train))
+    X_train = convert_to_sparse_tensor(vectorizer.fit_transform(X_train)).to("cuda")
     X_val = convert_to_sparse_tensor(vectorizer.transform(X_val))
     X_test = convert_to_sparse_tensor(vectorizer.transform(X_test))
 
 
     # Conversion a tensores de targets
-    Y_train = torch.LongTensor(Y_train.to_numpy())
+    Y_train = torch.LongTensor(Y_train.to_numpy()).to("cuda")
     Y_val = torch.LongTensor(Y_val.to_numpy())
     Y_test = torch.LongTensor(Y_test.to_numpy())
 

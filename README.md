@@ -457,3 +457,97 @@ class MLP(torch.nn.Module):
     def _init_weights(self):
         pass
 ```
+
+
+# Primer intento de entrenamiento
+
+Codigo:
+
+```python
+
+from logging import critical
+from sklearn.model_selection import train_test_split
+from utils.constants import BATCH_SIZE
+from utils.get_preprocessed_data import get_preprocessed_data
+import torch
+from utils.MLP import MLP
+from utils.generate_dataloaders import generate_dataloaders
+
+if __name__ == "__main__":
+    (X_train, Y_train), (X_val, Y_val), (X_test, Y_test) = get_preprocessed_data()
+    train_dataloader, validation_dataloader,_= generate_dataloaders(
+            train_dataset=(X_train, Y_train),
+            val_dataset=(X_val, Y_val),
+            BATCH_SIZE=128
+            )
+    mlp = MLP(
+            input_shape=X_train.shape[1],
+            hidden_sizes=[300,300,300], 
+            out_size=4).to("cuda")
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(params=mlp.parameters(), lr=1e-4)
+    for i in range(100):
+        for (X_batch, Y_batch) in train_dataloader:
+            X_batch = X_batch.float().to("cuda")
+            Y_batch = Y_batch.to("cuda")
+            optimizer.zero_grad()
+
+            output = mlp(X_batch)
+            loss = criterion(output, Y_batch)
+
+            loss.backward()
+            optimizer.step()
+
+            print(loss.item())
+
+```
+
+A pesar de que el entrenamiento corre bien, es extremadamente lento. Por lo visto, esto se debe al siguiente pedazo de codigo:
+
+```python
+from torch.utils.data import DataLoader
+from utils.constants import *
+from torch.utils.data import TensorDataset
+import torch
+
+def sparse_collate_fn(batch):
+    X_batch, Y_batch = zip(*batch)
+    return torch.stack([x.to_dense() for x in X_batch]), torch.stack(Y_batch)
+
+
+
+def generate_dataloaders(BATCH_SIZE,train_dataset=None, val_dataset=None, test_dataset=None):
+    train_dataloader, validation_dataloader, test_dataloader = None, None, None
+    if train_dataset:
+        train_dataloader = DataLoader(
+                TensorDataset(train_dataset[0], train_dataset[1]), 
+                batch_size=BATCH_SIZE, 
+                shuffle=False, 
+                collate_fn=sparse_collate_fn)
+    if val_dataset:
+        validation_dataloader = DataLoader(
+                TensorDataset(val_dataset[0], val_dataset[1]), 
+                batch_size=BATCH_SIZE, 
+                shuffle=False, 
+                collate_fn=sparse_collate_fn)
+
+    if test_dataset:
+        test_dataloader = DataLoader(
+                TensorDataset(test_dataset[0], test_dataset[1]), 
+                batch_size=BATCH_SIZE, 
+                shuffle=False, 
+                collate_fn=sparse_collate_fn)
+    return train_dataloader, validation_dataloader, test_dataloader
+
+```
+
+El `x.to_dense()` corre en la cpu, lo cual relentiza muchisimo el entrenamiento. Una alternativa a esto es lo siguiente:
+
+(En `get_preprocessed_data`)
+
+```python
+
+    X_train = convert_to_sparse_tensor(vectorizer.fit_transform(X_train)).to("cuda")
+```
+
+El `.to("cuda")` para todo el `X_train` a la GPU, y eso hace que el `.to_dense` corra en la GPU, sin embargo no es la mejor forma.
