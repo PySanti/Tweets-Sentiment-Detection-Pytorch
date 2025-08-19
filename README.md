@@ -556,4 +556,120 @@ El `.to("cuda")` para todo el `X_train` a la GPU, y eso hace que el `.to_dense` 
 
 Despues de bastante investigacion nos dimos cuenta de que hay muchas maneras diferentes de preprocesar los tweets y que la forma mas optima para este caso la averiguaremos seguramente mas adelante en nuestra carrera cuando tengamos mas experiencia. Por ahora, sabemos que existe una forma mucho mas optima de afrontar este caso (aunque quiza no la mejor) que es usando Tokenizers. Basicamente transformando las palabras en un conjunto de tokens (numeros) y usando una capa de Embeddings (`nn.Embeddings`).
 
+La capa de word embedding (`nn.Embeddings`) recibe las cadenas de texto en forma de tokens, lo que hice para tokenizar fue lo siguiente:
+
+```python
+
+# main.py
+if __name__ == "__main__":
+    (X_train, Y_train), (X_val, Y_val), (X_test, Y_test) = get_preprocessed_data()
+
+    tokenizer = Tokenizer(models.BPE(unk_token="[UNK]"))
+    trainer = trainers.BpeTrainer()
+    tokenizer.train_from_iterator(X_train,trainer=trainer)
+
+    train_dataloader, validation_dataloader,_= generate_dataloaders(
+            train_dataset=(X_train, Y_train),
+            val_dataset=(X_val, Y_val),
+            tokenizer=tokenizer
+            )
+
+    ...
+```
+
+```python
+
+# utils/generate_dataloaders
+
+from torch.utils.data import DataLoader
+from utils.constants import *
+from torch.utils.data import TensorDataset
+from utils.TweetDataset import TweetDataset
+import torch
+from utils.constants  import BATCH_SIZE
+
+def generate_dataloaders(tokenizer,train_dataset=None, val_dataset=None, test_dataset=None):
+    dataloaders = []
+    for dataset in [train_dataset, val_dataset, test_dataset]:
+        new_dataloder = None
+        if dataset:
+            new_dataloder = DataLoader(
+                    TweetDataset(tweets=dataset[0], labels=dataset[1], tokenizer=tokenizer), 
+                    batch_size=BATCH_SIZE, 
+                    shuffle=False)
+        dataloaders.append(new_dataloder)
+    return dataloaders
+
+```
+
+```python
+
+# utils/TweetDataset
+
+import torch
+from torch.utils.data import Dataset
+from utils.encode_text import encode_text
+from utils.constants import MAX_LEN
+
+
+
+class TweetDataset(Dataset):
+
+    def __init__(self, tweets, labels, tokenizer):
+        self.tweets = tweets
+        self.labels = labels
+        self.tokenizer = tokenizer
+
+    def __len__(self):
+        return len(self.tweets)
+
+    def __getitem__(self, idx):
+        text = self.tweets[idx]
+        label = self.labels[idx]
+        tokens = encode_text(text,self.tokenizer, MAX_LEN)
+        tokens = tokens + [0] * (MAX_LEN - len(tokens)) # padding
+        return torch.tensor(tokens), torch.tensor(label)
+```
+
+En resumen, los dataloaders cargan los tweets 'crudos' y cuando se genera el batch es que se tokenizan + padding. Luego cada tweet es transformado en un vector de `MAX_LEN` posiciones. Por lo tanto a la red llega un batch de `(BATCH_SIZE, MAX_LEN)`.
+
+Esta termino siendo la arquitectura del MLP.
+
+```
+import torch
+from utils.constants import VOCAB_SIZE
+
+
+class MLP(torch.nn.Module):
+    def __init__(self, embed_dim, hidden_sizes, out_size):
+        super(MLP,self).__init__()
+        self.layers = torch.nn.ModuleList()
+
+        self.embed = torch.nn.Embedding(VOCAB_SIZE, embed_dim,padding_idx=0)
+        current_size = embed_dim
+        for layer in hidden_sizes:
+            self.layers.append(torch.nn.Linear(current_size, layer))
+            self.layers.append(torch.nn.ReLU())
+            # normalizacion
+            # dropout
+            current_size = layer
+
+        self.layers.append(torch.nn.Linear(current_size, out_size))
+
+    def forward(self, X):
+        out = self.embed(X) # (batch, seq, embed)
+        masked = out * (X != 0).unsqueeze(-1).float() 
+        pooled = masked.mean(dim=1) # (batch, embed)
+        out = pooled
+        for layer in self.layers:
+            out = layer(out)
+        return out
+
+    def _init_weights(self):
+        pass
+```
+
+Se pasan los vectores de tokens por la capa de embeddings para convertir cada vector (tweet tokenizado) en una matriz de `(MAX_LEN, EMBED_DIM)`. El funcionamiento especifico del word embedding es algo que ignoramos por los momentos, lo aprenderemos con exactitud en un futuro muy cercano. Luego se aplanan las matrices y pasan por un proceso de `Mean Pooling`.
+
+
 
