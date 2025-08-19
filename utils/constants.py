@@ -4,7 +4,9 @@ import re
 from nltk.stem import LancasterStemmer, SnowballStemmer
 
 
-BATCH_SIZE = 64
+BATCH_SIZE = 1280
+MAX_LEN = 256
+VOCAB_SIZE = 100_000
 TAGS_MAP = {
         'positive':0,
         'negative':1,

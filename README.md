@@ -551,3 +551,9 @@ El `x.to_dense()` corre en la cpu, lo cual relentiza muchisimo el entrenamiento.
 ```
 
 El `.to("cuda")` para todo el `X_train` a la GPU, y eso hace que el `.to_dense` corra en la GPU, sin embargo no es la mejor forma.
+
+## Modificacion de plan de transformacion de tweets
+
+Despues de bastante investigacion nos dimos cuenta de que hay muchas maneras diferentes de preprocesar los tweets y que la forma mas optima para este caso la averiguaremos seguramente mas adelante en nuestra carrera cuando tengamos mas experiencia. Por ahora, sabemos que existe una forma mucho mas optima de afrontar este caso (aunque quiza no la mejor) que es usando Tokenizers. Basicamente transformando las palabras en un conjunto de tokens (numeros) y usando una capa de Embeddings (`nn.Embeddings`).
+
+

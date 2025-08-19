@@ -1,12 +1,14 @@
 import torch
+from utils.constants import VOCAB_SIZE
 
 
 class MLP(torch.nn.Module):
-    def __init__(self, hidden_sizes, input_shape, out_size):
+    def __init__(self, embed_dim, hidden_sizes, out_size):
         super(MLP,self).__init__()
         self.layers = torch.nn.ModuleList()
 
-        current_size = input_shape
+        self.embed = torch.nn.Embedding(VOCAB_SIZE, embed_dim,padding_idx=0)
+        current_size = embed_dim
         for layer in hidden_sizes:
             self.layers.append(torch.nn.Linear(current_size, layer))
             self.layers.append(torch.nn.ReLU())
@@ -17,7 +19,10 @@ class MLP(torch.nn.Module):
         self.layers.append(torch.nn.Linear(current_size, out_size))
 
     def forward(self, X):
-        out = X
+        out = self.embed(X) # (batch, seq, embed)
+        masked = out * (X != 0).unsqueeze(-1).float() 
+        pooled = masked.mean(dim=1) # (batch, embed)
+        out = pooled
         for layer in self.layers:
             out = layer(out)
         return out

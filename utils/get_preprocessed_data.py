@@ -8,7 +8,6 @@ import os
 from utils.constants import *
 import pandas as pd
 import torch
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 def get_preprocessed_data():
@@ -33,19 +32,13 @@ def get_preprocessed_data():
     X_train, X_val, Y_train, Y_val = train_test_split(X, Y, random_state=42, test_size=0.1, stratify=Y)
     X_train, X_test, Y_train, Y_test = train_test_split(X_train, Y_train, random_state=42, test_size=0.1, stratify=Y_train)
 
-    # Crecion de vectorizer (matrices de dispercion): Solo se admitiran palabras en el corpus que aparezcan +5 veces
-    vectorizer = CountVectorizer(min_df=5)
+    X_train = X_train.to_numpy()
+    X_val = X_val.to_numpy()
+    X_test = X_test.to_numpy()
 
-    # Uso de convert_to_sparse_tensor para convertir a matrices de dispersion de PyTorch
-    X_train = convert_to_sparse_tensor(vectorizer.fit_transform(X_train))
-    X_val = convert_to_sparse_tensor(vectorizer.transform(X_val))
-    X_test = convert_to_sparse_tensor(vectorizer.transform(X_test))
-
-
-    # Conversion a tensores de targets
-    Y_train = torch.LongTensor(Y_train.to_numpy())
-    Y_val = torch.LongTensor(Y_val.to_numpy())
-    Y_test = torch.LongTensor(Y_test.to_numpy())
+    Y_train = Y_train.to_numpy()
+    Y_val = Y_val.to_numpy()
+    Y_test = Y_test.to_numpy()
 
 
     return (X_train, Y_train), (X_val, Y_val), (X_test, Y_test)
