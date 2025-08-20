@@ -14,7 +14,7 @@ def generate_dataloaders(tokenizer,train_dataset=None, val_dataset=None, test_da
                     TweetDataset(tweets=dataset[0], labels=dataset[1], tokenizer=tokenizer), 
                     batch_size=BATCH_SIZE, 
                     shuffle=False,
-                    num_workers=5,
+                    num_workers=4,
                     pin_memory=True,
                     persistent_workers=True)
         dataloaders.append(new_dataloder)

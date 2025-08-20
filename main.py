@@ -20,6 +20,7 @@ if __name__ == "__main__":
     mlp = MLP(embed_dim=256,hidden_sizes=[300,300,300],out_size=4).to("cuda")
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(params=mlp.parameters(), lr=5e-3)
+    scaler = torch.amp.GradScaler()
     for i in range(15):
         t1 = time.time()
         print(f"Epoch : {i}")
@@ -33,11 +34,14 @@ if __name__ == "__main__":
             X_batch, Y_batch = X_batch.to('cuda'), Y_batch.to('cuda')
             optimizer.zero_grad()
 
-            output = mlp(X_batch)
-            loss = criterion(output, Y_batch)
+            with torch.amp.autocast(device_type='cuda'):
+                output = mlp(X_batch)
+                loss = criterion(output, Y_batch)
 
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
             train_loss.append(loss.item())
 
 
@@ -51,7 +55,6 @@ if __name__ == "__main__":
                 output = mlp(X_batch)
                 loss = criterion(output, Y_batch)
                 _, predicted = torch.max(output, 1)
-                print(predicted)
 
                 val_accuracy.append((Y_batch == predicted).cpu().sum()/BATCH_SIZE)
                 val_loss.append(loss.item())
@@ -61,5 +64,6 @@ if __name__ == "__main__":
         print(f'Val accuracy : {np.mean(val_accuracy)}')
         print(f'Overfitting : {100 - (np.mean(val_loss)*100/np.mean(train_loss))}')
         print(f"Tiempo de procesamiento de la epoca : {time.time()-t1}")
+        print("_______________")
 
 
