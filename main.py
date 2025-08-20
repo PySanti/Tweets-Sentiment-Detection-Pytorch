@@ -7,6 +7,8 @@ from utils.generate_dataloaders import generate_dataloaders
 from utils.initialize_tokenizer import initialize_tokenizer
 import time
 
+from utils.plot_model_performance import plot_model_performance
+
 if __name__ == "__main__":
     (X_train, Y_train), (X_val, Y_val), (X_test, Y_test) = get_preprocessed_data()
 
@@ -21,6 +23,8 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(params=mlp.parameters(), lr=5e-3)
     scaler = torch.amp.GradScaler()
+    epochs_train_loss = []
+    epochs_val_loss = []
     for i in range(15):
         t1 = time.time()
         print(f"Epoch : {i}")
@@ -59,6 +63,8 @@ if __name__ == "__main__":
                 val_accuracy.append((Y_batch == predicted).cpu().sum()/BATCH_SIZE)
                 val_loss.append(loss.item())
 
+        epochs_train_loss.append(np.mean(train_loss))
+        epochs_val_loss.append(np.mean(val_loss))
         print(f'Train loss : {np.mean(train_loss)}')
         print(f'Val loss : {np.mean(val_loss)}')
         print(f'Val accuracy : {np.mean(val_accuracy)}')
@@ -66,4 +72,4 @@ if __name__ == "__main__":
         print(f"Tiempo de procesamiento de la epoca : {time.time()-t1}")
         print("_______________")
 
-
+    plot_model_performance(epochs_train_loss,epochs_val_loss)
