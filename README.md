@@ -635,7 +635,7 @@ En resumen, los dataloaders cargan los tweets 'crudos' y cuando se genera el bat
 
 Esta termino siendo la arquitectura del MLP.
 
-```
+```python
 import torch
 from utils.constants import VOCAB_SIZE
 
