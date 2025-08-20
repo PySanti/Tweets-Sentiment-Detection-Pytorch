@@ -3,7 +3,7 @@ from utils.constants import VOCAB_SIZE
 
 
 class MLP(torch.nn.Module):
-    def __init__(self, embed_dim, hidden_sizes, out_size):
+    def __init__(self, embed_dim, hidden_sizes, out_size, drop_rate):
         super(MLP,self).__init__()
         self.layers = torch.nn.ModuleList()
 
@@ -12,8 +12,8 @@ class MLP(torch.nn.Module):
         for layer in hidden_sizes:
             self.layers.append(torch.nn.Linear(current_size, layer))
             self.layers.append(torch.nn.LeakyReLU())
+            self.layers.append(torch.nn.Dropout(p=drop_rate))
             # normalizacion
-            # dropout
             current_size = layer
 
         self.layers.append(torch.nn.Linear(current_size, out_size))

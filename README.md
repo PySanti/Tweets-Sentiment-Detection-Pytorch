@@ -799,3 +799,19 @@ def generate_dataloaders(tokenizer,train_dataset=None, val_dataset=None, test_da
         dataloaders.append(new_dataloder)
     return dataloaders
 ```
+
+## Implementacion de dropout + weight decay
+
+Luego de implementar un dropout de 0.2 y un weight decay de 1e-4, estos fueron los resultados:
+
+```
+Epoch : 14
+Train loss : 0.105
+Val loss : 0.104
+Val accuracy : 0.957
+Overfitting : 0.681
+Tiempo de procesamiento de la epoca : 12.009
+_______________
+```
+
+![title](./images/of_2.png)

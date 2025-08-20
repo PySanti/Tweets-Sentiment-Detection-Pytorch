@@ -19,13 +19,13 @@ if __name__ == "__main__":
             val_dataset=(X_val, Y_val),
             tokenizer=tokenizer
             )
-    mlp = MLP(embed_dim=256,hidden_sizes=[300,300,300],out_size=4).to("cuda")
+    mlp = MLP(embed_dim=256,hidden_sizes=[300,300,300],out_size=4, drop_rate=0.2).to("cuda")
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(params=mlp.parameters(), lr=5e-3)
+    optimizer = torch.optim.Adam(params=mlp.parameters(), lr=5e-3, weight_decay=1e-4)
     scaler = torch.amp.GradScaler()
     epochs_train_loss = []
     epochs_val_loss = []
-    for i in range(15):
+    for i in range(25):
         t1 = time.time()
         print(f"Epoch : {i}")
         train_loss = []
@@ -65,11 +65,11 @@ if __name__ == "__main__":
 
         epochs_train_loss.append(np.mean(train_loss))
         epochs_val_loss.append(np.mean(val_loss))
-        print(f'Train loss : {np.mean(train_loss)}')
-        print(f'Val loss : {np.mean(val_loss)}')
-        print(f'Val accuracy : {np.mean(val_accuracy)}')
-        print(f'Overfitting : {100 - (np.mean(val_loss)*100/np.mean(train_loss))}')
-        print(f"Tiempo de procesamiento de la epoca : {time.time()-t1}")
+        print(f'Train loss : {np.mean(train_loss):.3f}')
+        print(f'Val loss : {np.mean(val_loss):.3f}')
+        print(f'Val accuracy : {np.mean(val_accuracy):.3f}')
+        print(f'Overfitting : {100 - (np.mean(val_loss)*100/np.mean(train_loss)):.3f}')
+        print(f"Tiempo de procesamiento de la epoca : {time.time()-t1:.3f}")
         print("_______________")
 
     plot_model_performance(epochs_train_loss,epochs_val_loss)
