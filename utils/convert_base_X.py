@@ -1,8 +1,5 @@
 import numpy as np
 
-from utils.clean_tweet import clean_tweet
-from .constants import language_map
-
 def convert_base_X(X):
     """
         Recibe el dataframe basico cargado que contiene ~1M de registros

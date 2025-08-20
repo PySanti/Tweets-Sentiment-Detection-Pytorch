@@ -11,7 +11,7 @@ class MLP(torch.nn.Module):
         current_size = embed_dim
         for layer in hidden_sizes:
             self.layers.append(torch.nn.Linear(current_size, layer))
-            self.layers.append(torch.nn.ReLU())
+            self.layers.append(torch.nn.LeakyReLU())
             # normalizacion
             # dropout
             current_size = layer

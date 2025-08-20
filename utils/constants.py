@@ -4,9 +4,9 @@ import re
 from nltk.stem import LancasterStemmer, SnowballStemmer
 
 
-BATCH_SIZE = 1280
+BATCH_SIZE = 4096
 MAX_LEN = 256
-VOCAB_SIZE = 100_000
+VOCAB_SIZE = 30_000
 TAGS_MAP = {
         'positive':0,
         'negative':1,
@@ -81,15 +81,6 @@ language_map = {
 }
 
 MIN_APP_FREC = 5
-steemer_dict = {
-        "en": LancasterStemmer(),
-        **{lan : SnowballStemmer(language_map[lan]) for lan in language_map.keys() if lan!="en" and language_map[lan] in SnowballStemmer.languages}
-        }
-
-stop_words_dict = {
-    **{lan : set(stopwords.words(language_map[lan])) for lan in language_map.keys() if language_map[lan] in stopwords.fileids()} 
-}
-
 mentions_pattrn = re.compile(r'(@\w+|http\S+|#\w+)')
 number_words_pattrn = re.compile(r'\b\w*\d\w*\b')
 
