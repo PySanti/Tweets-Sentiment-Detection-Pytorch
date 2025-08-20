@@ -815,3 +815,71 @@ _______________
 ```
 
 ![title](./images/of_2.png)
+
+## Normalization
+
+Primeramente implementamos normalizacion en el mlp, sin embargo, empezamos a obtener resultados muy malos, luego de revisar el codigo nos percatamos de que los inputs no se estaban normalizando, y quizas esto podria causar inestabilidad en la red, luego agregamos codigo para aplicar `LayerNormalization` a los inputs.
+
+```python
+
+import torch
+from utils.constants import VOCAB_SIZE
+
+
+class MLP(torch.nn.Module):
+    def __init__(self, embed_dim, hidden_sizes, out_size, drop_rate):
+        super(MLP,self).__init__()
+        self.layers = torch.nn.ModuleList()
+
+        self.embed = torch.nn.Embedding(VOCAB_SIZE, embed_dim,padding_idx=0)
+        self.embed_norm = torch.nn.LayerNorm(embed_dim)
+        current_size = embed_dim
+        for layer in hidden_sizes:
+            self.layers.append(torch.nn.Linear(current_size, layer))
+            self.layers.append(torch.nn.BatchNorm1d(layer))
+            self.layers.append(torch.nn.LeakyReLU())
+            self.layers.append(torch.nn.Dropout(p=drop_rate))
+            current_size = layer
+
+        self.layers.append(torch.nn.Linear(current_size, out_size))
+
+    def forward(self, X):
+        out = self.embed(X) # (batch, seq, embed)
+        masked = out * (X != 0).unsqueeze(-1).float() 
+        pooled = masked.mean(dim=1) # (batch, embed)
+        out = pooled
+        out = self.embed_norm(out)
+        for layer in self.layers:
+            out = layer(out)
+        return out
+
+    def _init_weights(self):
+        pass
+```
+
+Con esto, los resultados fueron los siguientes:
+
+```
+Epoch : 24
+Train loss : 0.079
+Val loss : 0.106
+Val accuracy : 0.958
+Overfitting : -34.224
+Tiempo de procesamiento de la epoca : 11.872
+```
+
+![title](./images/of_3.png)
+
+Luego de implementar `BatchNorm1d` previo a entrar en la red, logramos los siguientes resultados.
+
+```
+Epoch : 24
+Train loss : 0.078
+Val loss : 0.107
+Val accuracy : 0.957
+Overfitting : -38.394
+Tiempo de procesamiento de la epoca : 11.830
+_______________
+```
+
+![title](./images/of_4.png)
