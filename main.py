@@ -60,6 +60,6 @@ if __name__ == "__main__":
         print(f'Val loss : {np.mean(val_loss)}')
         print(f'Val accuracy : {np.mean(val_accuracy)}')
         print(f'Overfitting : {100 - (np.mean(val_loss)*100/np.mean(train_loss))}')
-        print(f"Tiempo de procesamiento de la epocha : {time.time()-t1}")
+        print(f"Tiempo de procesamiento de la epoca : {time.time()-t1}")
 
 
