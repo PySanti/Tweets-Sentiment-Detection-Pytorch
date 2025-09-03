@@ -18,6 +18,7 @@ class MLP(torch.nn.Module):
             current_size = layer
 
         self.layers.append(torch.nn.Linear(current_size, out_size))
+        self._init_weights()
 
     def forward(self, X):
         out = self.embed(X) # (batch, seq, embed)
@@ -30,4 +31,6 @@ class MLP(torch.nn.Module):
         return out
 
     def _init_weights(self):
-        pass
+        for layer in self.layers:
+            if isinstance(layer, torch.nn.Linear):
+                torch.nn.init.kaiming_normal_(layer.weight,nonlinearity='leaky_relu')

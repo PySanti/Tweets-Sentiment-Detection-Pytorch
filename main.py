@@ -1,4 +1,5 @@
 import numpy as np
+from pandas import test
 from utils.constants import BATCH_SIZE
 from utils.get_preprocessed_data import get_preprocessed_data
 import torch
@@ -6,25 +7,25 @@ from utils.MLP import MLP
 from utils.generate_dataloaders import generate_dataloaders
 from utils.initialize_tokenizer import initialize_tokenizer
 import time
-
 from utils.plot_model_performance import plot_model_performance
 
 if __name__ == "__main__":
     (X_train, Y_train), (X_val, Y_val), (X_test, Y_test) = get_preprocessed_data()
-
+    mlp = MLP(embed_dim=256,hidden_sizes=[300,300,300],out_size=4, drop_rate=0.2).to("cuda")
     tokenizer = initialize_tokenizer(X_train)
 
-    train_dataloader, validation_dataloader,_= generate_dataloaders(
+    train_dataloader, validation_dataloader,test_dataloader= generate_dataloaders(
             train_dataset=(X_train, Y_train),
             val_dataset=(X_val, Y_val),
+            test_dataset=(X_test, Y_test),
             tokenizer=tokenizer
             )
-    mlp = MLP(embed_dim=256,hidden_sizes=[300,300,300],out_size=4, drop_rate=0.2).to("cuda")
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(params=mlp.parameters(), lr=5e-3, weight_decay=1e-4)
     scaler = torch.amp.GradScaler()
     epochs_train_loss = []
     epochs_val_loss = []
+
     for i in range(25):
         t1 = time.time()
         print(f"Epoch : {i}")
@@ -73,3 +74,17 @@ if __name__ == "__main__":
         print("_______________")
 
     plot_model_performance(epochs_train_loss,epochs_val_loss)
+    
+
+    mlp.eval()
+    test_accuracy = []
+    with torch.no_grad():
+        for i, (X_batch, Y_batch) in enumerate(test_dataloader):
+            print(f"Batch : {i}/{len(X_val)//BATCH_SIZE}", end="\r")
+            X_batch, Y_batch = X_batch.to('cuda'), Y_batch.to('cuda')
+
+            output = mlp(X_batch)
+            _, predicted = torch.max(output,1)
+            test_accuracy.append((Y_batch == predicted).to('cpu').sum()/BATCH_SIZE)
+        print(f"Test accuracy : {np.mean(test_accuracy):.3f}")
+

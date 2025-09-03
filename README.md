@@ -883,3 +883,48 @@ _______________
 ```
 
 ![title](./images/of_4.png)
+
+## Weights Initializaiton
+
+
+Utilizando el siguiente codigo:
+
+```python
+
+import torch
+from utils.constants import VOCAB_SIZE
+
+
+class MLP(torch.nn.Module):
+
+    def __init__(self, ...):
+        ...
+        self._init_weights()
+
+    def _init_weights(self):
+        for layer in self.layers:
+            if isinstance(layer, torch.nn.Linear):
+                torch.nn.init.kaiming_normal_(layer.weight,nonlinearity='leaky_relu')
+```
+
+
+Se obtuvieron los siguientes resultados:
+
+
+```
+Epoch : 24
+Train loss : 0.078
+Val loss : 0.109
+Val accuracy : 0.958
+Overfitting : -39.818
+Tiempo de procesamiento de la epoca : 21.729
+_______________
+Test accuracy : 0.945
+```
+
+
+![title](./images/of_5.png)
+
+## LR Scheduling
+
+
