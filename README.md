@@ -927,4 +927,47 @@ Test accuracy : 0.945
 
 ## LR Scheduling
 
+Implementando el siguiente codigo en el **main.py**:
 
+```python
+
+    ...
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,              #  Optimizador al que se le ajustará el LR
+        mode='max',             #  Reduce el LR si la métrica (ej. pérdida) deja de disminuir
+        factor=0.1,             #  Multiplica el LR por este factor cuando se activa (ej. 0.001 → 0.0001)
+        patience=4,             #  Número de épocas sin mejora antes de reducir el LR
+        threshold=1e-3,         #  Mínimo cambio considerado como mejora significativa
+        threshold_mode='rel',   #  'rel' compara de forma relativa al mejor valor; 'abs' es absoluto
+        cooldown=0,             #  Épocas de espera tras reducir el LR antes de volver a evaluar
+        min_lr=1e-6,            #  Valor mínimo que puede alcanzar el LR
+        eps=1e-8                #  Mínima diferencia entre LR actual y nuevo para aplicar el cambio
+    )
+
+    for i in range(25):
+
+         ...
+
+        mlp.eval()
+
+        with torch.no_grad():
+            for i, (X_batch, Y_batch) in enumerate(validation_dataloader):
+                ...
+       scheduler.step(np.mean(val_accuracy))        # Se llama con la métrica que se quiere monitorizar
+ 
+```
+
+Se obtuvieron los siguientes resultados:
+
+```
+Epoch : 24
+Train loss : 0.016
+Val loss : 0.157
+Val accuracy : 0.960
+Overfitting : -885.187
+Tiempo de procesamiento de la epoca : 12.532
+_______________
+Test accuracy : 0.946
+```
+
+Aumento un poco el overfitting pero tambien las precisiones.

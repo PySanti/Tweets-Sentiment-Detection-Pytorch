@@ -26,6 +26,18 @@ if __name__ == "__main__":
     epochs_train_loss = []
     epochs_val_loss = []
 
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,              #  Optimizador al que se le ajustará el LR
+        mode='max',             #  Reduce el LR si la métrica (ej. pérdida) deja de disminuir
+        factor=0.1,             #  Multiplica el LR por este factor cuando se activa (ej. 0.001 → 0.0001)
+        patience=4,             #  Número de épocas sin mejora antes de reducir el LR
+        threshold=1e-3,         #  Mínimo cambio considerado como mejora significativa
+        threshold_mode='rel',   #  'rel' compara de forma relativa al mejor valor; 'abs' es absoluto
+        cooldown=0,             #  Épocas de espera tras reducir el LR antes de volver a evaluar
+        min_lr=1e-6,            #  Valor mínimo que puede alcanzar el LR
+        eps=1e-8                #  Mínima diferencia entre LR actual y nuevo para aplicar el cambio
+    )
+
     for i in range(25):
         t1 = time.time()
         print(f"Epoch : {i}")
@@ -64,6 +76,7 @@ if __name__ == "__main__":
                 val_accuracy.append((Y_batch == predicted).cpu().sum()/BATCH_SIZE)
                 val_loss.append(loss.item())
 
+        scheduler.step(np.mean(val_accuracy))        # Se llama con la métrica que se quiere monitorizar
         epochs_train_loss.append(np.mean(train_loss))
         epochs_val_loss.append(np.mean(val_loss))
         print(f'Train loss : {np.mean(train_loss):.3f}')
