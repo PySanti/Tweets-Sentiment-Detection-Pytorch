@@ -970,4 +970,7 @@ _______________
 Test accuracy : 0.946
 ```
 
+
+![title](./images/of_6.png)
+
 Aumento un poco el overfitting pero tambien las precisiones.
